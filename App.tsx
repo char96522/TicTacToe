@@ -1,117 +1,114 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 
-import React from 'react';
-import type {PropsWithChildren} from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+const initialBoard = Array(9).fill(null);
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+const App = () => {
+  const [board, setBoard] = useState(initialBoard);
+  const [xIsNext, setXIsNext] = useState(true);
 
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
-
-function Section({children, title}: SectionProps): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
-}
-
-function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
+  const calculateWinner = squares => {
+    const lines = [
+      [0, 1, 2],
+      [3, 4, 5],
+      [6, 7, 8],
+      [0, 3, 6],
+      [1, 4, 7],
+      [2, 5, 8],
+      [0, 4, 8],
+      [2, 4, 6],
+    ];
+    for (let i = 0; i < lines.length; i++) {
+      const [a, b, c] = lines[i];
+      if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
+        return squares[a];
+      }
+    }
+    return null;
   };
 
+  const handleClick = i => {
+    const squares = [...board];
+    if (calculateWinner(squares) || squares[i]) {
+      return;
+    }
+    squares[i] = xIsNext ? 'X' : 'O';
+    setBoard(squares);
+    setXIsNext(!xIsNext);
+  };
+
+  const renderSquare = i => {
+    return (
+      <TouchableOpacity style={styles.square} onPress={() => handleClick(i)}>
+        <Text style={styles.squareText}>{board[i]}</Text>
+      </TouchableOpacity>
+    );
+  };
+
+  const resetGame = () => {
+    setBoard(initialBoard);
+    setXIsNext(true);
+  };
+
+  const winner = calculateWinner(board);
+  let status;
+  if (winner) {
+    status = `Winner: ${winner}`;
+    Alert.alert('Game Over', `${winner} wins!`, [{ text: 'OK', onPress: resetGame }]);
+  } else {
+    status = `Next player: ${xIsNext ? 'X' : 'O'}`;
+  }
+
   return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
+    <View style={styles.container}>
+      <Text style={styles.status}>{status}</Text>
+      <View style={styles.board}>
+        <View style={styles.row}>
+          {renderSquare(0)}
+          {renderSquare(1)}
+          {renderSquare(2)}
         </View>
-      </ScrollView>
-    </SafeAreaView>
+        <View style={styles.row}>
+          {renderSquare(3)}
+          {renderSquare(4)}
+          {renderSquare(5)}
+        </View>
+        <View style={styles.row}>
+          {renderSquare(6)}
+          {renderSquare(7)}
+          {renderSquare(8)}
+        </View>
+      </View>
+    </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
+  status: {
+    marginBottom: 10,
+    fontSize: 20,
+    fontWeight: 'bold',
   },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
+  board: {
+    borderWidth: 1,
   },
-  highlight: {
-    fontWeight: '700',
+  row: {
+    flexDirection: 'row',
+  },
+  square: {
+    width: 100,
+    height: 100,
+    borderWidth: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  squareText: {
+    fontSize: 40,
   },
 });
 
